@@ -2,7 +2,7 @@ name: Build Android APK
 env:
   FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: 'true'
 on:
-  workflow_dispatch:  # 手动触发
+  workflow_dispatch:
 jobs:
   build:
     runs-on: ubuntu-latest
@@ -21,7 +21,9 @@ jobs:
     - name: Install system dependencies
       run: |
         sudo apt update
-        sudo apt install -y git zip unzip openjdk-17-jdk python3-pip autoconf libtool           libncurses5 libncurses5-dev zlib1g zlib1g-dev libssl-dev libffi-dev           build-essential libsqlite3-dev liblzma-dev
+        sudo apt install -y git zip unzip openjdk-17-jdk python3-pip autoconf libtool \
+          libncurses-dev zlib1g zlib1g-dev libssl-dev libffi-dev \
+          build-essential libsqlite3-dev liblzma-dev
     - name: Install Buildozer
       run: |
         pip3 install --upgrade pip
