@@ -18,13 +18,18 @@ jobs:
       with:
         java-version: '17'
         distribution: 'temurin'
-    - name: Install system dependencies
+    - name: Install system dependencies (FULL SET)
       run: |
         sudo apt update
         sudo apt install -y git zip unzip openjdk-17-jdk python3-pip \
-          autoconf libtool libtool-bin pkg-config \
+          autoconf automake libtool libtool-bin pkg-config \
           libncurses-dev zlib1g zlib1g-dev libssl-dev libffi-dev \
-          build-essential libsqlite3-dev liblzma-dev
+          build-essential libsqlite3-dev liblzma-dev \
+          libbz2-dev libgdbm-dev libreadline-dev \
+          libxml2-dev libxslt-dev libffi-dev libssl-dev \
+          libcurl4-openssl-dev libexpat1-dev gettext \
+          libglib2.0-dev libpng-dev libjpeg-dev \
+          libfreetype6-dev libharfbuzz-dev
     - name: Install Buildozer
       run: |
         pip3 install --upgrade pip
