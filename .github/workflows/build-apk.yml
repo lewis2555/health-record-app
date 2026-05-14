@@ -1,0 +1,103 @@
+name: Build Android APK
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+  workflow_dispatch:  # 添加手动触发支持
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - uses: actions/checkout@v4
+    
+    - name: Set up Python
+      uses: actions/setup-python@v5
+      with:
+        python-version: '3.12'
+    
+    - name: Install system dependencies
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y \
+          git \
+          ffmpeg \
+          libffi-dev \
+          libssl-dev \
+          libgstreamer1.0-dev \
+          libgstreamer-plugins-base1.0-dev \
+          gstreamer1.0-plugins-good \
+          libgl1-mesa-dri \
+          libegl1-mesa \
+          libgles2-mesa-dev \
+          mesa-utils \
+          libmtdev-dev \
+          xclip \
+          xsel \
+          autoconf \
+          automake \
+          build-essential \
+          libtool \
+          libncurses5-dev \
+          wget \
+          unzip \
+          openjdk-17-jdk \
+          android-sdk-build-tools \
+          cmake \
+          ninja-build
+    
+    - name: Install Buildozer
+      run: |
+        pip install --upgrade pip
+        pip install buildozer cython==0.29.36
+    
+    - name: Setup Android environment
+      run: |
+        # 设置 ANDROID_HOME
+        export ANDROID_HOME=$HOME/android-sdk
+        mkdir -p $ANDROID_HOME
+        
+        # 下载并安装 NDK r25b
+        echo "📥 下载 NDK r25b..."
+        wget -q https://dl.google.com/android/repository/android-ndk-r25b-linux.zip -O /tmp/ndk.zip
+        unzip -q /tmp/ndk.zip -d $ANDROID_HOME
+        mv $ANDROID_HOME/android-ndk-r25b $ANDROID_HOME/ndk
+        export ANDROID_NDK=$ANDROID_HOME/ndk
+        
+        # 验证安装
+        echo "✅ NDK 版本:"
+        $ANDROID_NDK/ndk-build --version
+        
+    - name: Build APK with Buildozer
+      env:
+        ANDROID_HOME: ${{ env.ANDROID_HOME }}
+        ANDROID_NDK: ${{ env.ANDROID_NDK }}
+      run: |
+        # 初始化 buildozer
+        buildozer init
+        
+        # 使用我们自己的 buildozer.spec
+        # 清理旧的构建缓存
+        rm -rf .buildozer
+        
+        # 开始构建（详细日志）
+        buildozer -v android debug
+        
+    - name: Upload APK artifact
+      uses: actions/upload-artifact@v4
+      if: success()
+      with:
+        name: health-record-app
+        path: bin/*.apk
+        retention-days: 30
+    
+    - name: Upload build logs
+      uses: actions/upload-artifact@v4
+      if: failure()
+      with:
+        name: build-logs
+        path: |
+          .buildozer/logs/**
+          latest_failed_build.log
+        retention-days: 7
